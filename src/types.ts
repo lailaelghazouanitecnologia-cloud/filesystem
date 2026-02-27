@@ -21,6 +21,7 @@ export interface FileNode {
   children?: string[];
   content?: string;
   extension?: string;
+  metadata?: Record<string, string | number>;
 }
 
 export type ViewMode = "grid" | "list";

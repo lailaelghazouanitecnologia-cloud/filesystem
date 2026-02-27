@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useMemo } from "react";
 import type { FileNode } from "../types";
 import { formatSize, formatDate, getPath } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
@@ -16,6 +16,16 @@ import {
   Pencil,
   Check,
   Undo2,
+  ChevronLeft,
+  ChevronRight,
+  ZoomIn,
+  ZoomOut,
+  Download,
+  Folder,
+  File,
+  Camera,
+  Clock,
+  Hash,
 } from "lucide-react";
 
 interface FileViewerProps {
@@ -37,7 +47,6 @@ const langMap: Record<string, string> = {
   env: "Environment",
 };
 
-/* ---------- Check if file is editable ---------- */
 function isEditable(file: FileNode): boolean {
   const ext = file.extension?.toLowerCase() ?? "";
   return (
@@ -48,17 +57,17 @@ function isEditable(file: FileNode): boolean {
   );
 }
 
+function fmtDuration(sec: number): string {
+  const h = Math.floor(sec / 3600);
+  const m = Math.floor((sec % 3600) / 60);
+  const s = sec % 60;
+  if (h > 0) return `${h}:${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  return `${m}:${s.toString().padStart(2, "0")}`;
+}
+
 /* ---------- Editor ---------- */
 
-function EditorView({
-  file,
-  onSave,
-  onCancel,
-}: {
-  file: FileNode;
-  onSave: (content: string) => void;
-  onCancel: () => void;
-}) {
+function EditorView({ file, onSave, onCancel }: { file: FileNode; onSave: (c: string) => void; onCancel: () => void }) {
   const [value, setValue] = useState(file.content ?? "");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const lineCountRef = useRef<HTMLDivElement>(null);
@@ -67,28 +76,16 @@ function EditorView({
   const lines = value.split("\n");
   const hasChanges = value !== (file.content ?? "");
 
-  useEffect(() => {
-    textareaRef.current?.focus();
-  }, []);
+  useEffect(() => { textareaRef.current?.focus(); }, []);
 
   const handleScroll = () => {
-    if (textareaRef.current && lineCountRef.current) {
+    if (textareaRef.current && lineCountRef.current)
       lineCountRef.current.scrollTop = textareaRef.current.scrollTop;
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    // Ctrl+S / Cmd+S to save
-    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
-      e.preventDefault();
-      if (hasChanges) onSave(value);
-    }
-    // Escape to cancel
-    if (e.key === "Escape") {
-      e.preventDefault();
-      onCancel();
-    }
-    // Tab inserts 2 spaces
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") { e.preventDefault(); if (hasChanges) onSave(value); }
+    if (e.key === "Escape") { e.preventDefault(); onCancel(); }
     if (e.key === "Tab") {
       e.preventDefault();
       const ta = textareaRef.current!;
@@ -96,9 +93,7 @@ function EditorView({
       const end = ta.selectionEnd;
       const newVal = value.substring(0, start) + "  " + value.substring(end);
       setValue(newVal);
-      requestAnimationFrame(() => {
-        ta.selectionStart = ta.selectionEnd = start + 2;
-      });
+      requestAnimationFrame(() => { ta.selectionStart = ta.selectionEnd = start + 2; });
     }
   };
 
@@ -108,43 +103,15 @@ function EditorView({
         <span className="renderer-editor-lang">{lang}</span>
         <span className="renderer-editor-hint">Ctrl+S save · Esc cancel</span>
         <div className="renderer-editor-actions">
-          <button
-            className="renderer-editor-btn cancel"
-            onClick={onCancel}
-            title="Cancel"
-          >
-            <Undo2 size={13} />
-            <span>Cancel</span>
-          </button>
-          <button
-            className="renderer-editor-btn save"
-            onClick={() => onSave(value)}
-            disabled={!hasChanges}
-            title="Save"
-          >
-            <Check size={13} />
-            <span>Save</span>
-          </button>
+          <button className="renderer-editor-btn cancel" onClick={onCancel}><Undo2 size={13} /><span>Cancel</span></button>
+          <button className="renderer-editor-btn save" onClick={() => onSave(value)} disabled={!hasChanges}><Check size={13} /><span>Save</span></button>
         </div>
       </div>
       <div className="renderer-editor-scroll">
-        <div
-          className="renderer-editor-lines"
-          ref={lineCountRef}
-        >
-          {lines.map((_, i) => (
-            <span key={i}>{i + 1}</span>
-          ))}
+        <div className="renderer-editor-lines" ref={lineCountRef}>
+          {lines.map((_, i) => (<span key={i}>{i + 1}</span>))}
         </div>
-        <textarea
-          ref={textareaRef}
-          className="renderer-editor-textarea"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-          onScroll={handleScroll}
-          onKeyDown={handleKeyDown}
-          spellCheck={false}
-        />
+        <textarea ref={textareaRef} className="renderer-editor-textarea" value={value} onChange={(e) => setValue(e.target.value)} onScroll={handleScroll} onKeyDown={handleKeyDown} spellCheck={false} />
       </div>
     </div>
   );
@@ -163,9 +130,7 @@ function CodeRenderer({ file }: { file: FileNode }) {
       <div className="renderer-code-scroll">
         <div className="file-viewer-code">
           <div className="file-viewer-line-numbers">
-            {lines.map((_, i) => (
-              <span key={i}>{i + 1}</span>
-            ))}
+            {lines.map((_, i) => (<span key={i}>{i + 1}</span>))}
           </div>
           <pre className="file-viewer-source">{file.content}</pre>
         </div>
@@ -175,9 +140,7 @@ function CodeRenderer({ file }: { file: FileNode }) {
 }
 
 function MarkdownRenderer({ file }: { file: FileNode }) {
-  const content = file.content ?? "";
-  const blocks = content.split("\n");
-
+  const blocks = (file.content ?? "").split("\n");
   return (
     <div className="renderer-markdown">
       <div className="renderer-markdown-content">
@@ -198,185 +161,389 @@ function MarkdownRenderer({ file }: { file: FileNode }) {
 function CsvRenderer({ file }: { file: FileNode }) {
   const content = file.content ?? "";
   const rows = content.split("\n").filter(Boolean).map((r) => r.split(","));
+  const meta = file.metadata;
+  const totalRows = meta?.rows ? Number(meta.rows) : rows.length - 1;
+  const totalCols = meta?.cols ? Number(meta.cols) : (rows[0]?.length ?? 0);
 
   return (
     <div className="renderer-csv">
-      <table className="renderer-csv-table">
-        {rows.length > 0 && (
-          <thead>
-            <tr>
-              {rows[0].map((cell, i) => (
-                <th key={i}>{cell.trim()}</th>
-              ))}
-            </tr>
-          </thead>
+      <div className="renderer-csv-toolbar">
+        <Hash size={12} />
+        <span>{totalRows.toLocaleString()} rows × {totalCols} columns</span>
+        {totalRows > rows.length - 1 && (
+          <span className="renderer-csv-truncated">Showing first {rows.length - 1} rows</span>
         )}
-        <tbody>
-          {rows.slice(1).map((row, ri) => (
-            <tr key={ri}>
-              {row.map((cell, ci) => (
-                <td key={ci}>{cell.trim()}</td>
-              ))}
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      </div>
+      <div className="renderer-csv-scroll">
+        <table className="renderer-csv-table">
+          {rows.length > 0 && (
+            <thead>
+              <tr>
+                <th className="renderer-csv-rownum">#</th>
+                {rows[0].map((cell, i) => (<th key={i}>{cell.trim()}</th>))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {rows.slice(1).map((row, ri) => (
+              <tr key={ri}>
+                <td className="renderer-csv-rownum">{ri + 1}</td>
+                {row.map((cell, ci) => (<td key={ci}>{cell.trim()}</td>))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }
 
 function SvgRenderer({ file }: { file: FileNode }) {
-  if (!file.content) return <ImagePlaceholder file={file} />;
+  if (!file.content) return <ImageRenderer file={file} />;
   return (
     <div className="renderer-svg">
-      <div
-        className="renderer-svg-preview"
-        dangerouslySetInnerHTML={{ __html: file.content }}
-      />
-      <div className="renderer-svg-source">
-        <CodeRenderer file={file} />
-      </div>
+      <div className="renderer-svg-preview" dangerouslySetInnerHTML={{ __html: file.content }} />
+      <div className="renderer-svg-source"><CodeRenderer file={file} /></div>
     </div>
   );
 }
 
-function ImagePlaceholder({ file }: { file: FileNode }) {
-  const ext = file.extension?.toUpperCase() ?? "IMG";
-  const dims = file.size > 5000000 ? "3840 × 2160" : file.size > 1000000 ? "1920 × 1080" : "800 × 600";
-
-  return (
-    <div className="renderer-image">
-      <div className="renderer-image-canvas">
-        <Image size={56} strokeWidth={0.8} />
-      </div>
-      <div className="renderer-image-info">
-        <h3>{file.name}</h3>
-        <div className="renderer-image-details">
-          <span>{ext}</span>
-          <span>{dims} (estimated)</span>
-          <span>{formatSize(file.size)}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function AudioRenderer({ file }: { file: FileNode }) {
-  const ext = file.extension?.toUpperCase() ?? "AUDIO";
-  const durationSec = Math.floor(file.size / 16000);
-  const min = Math.floor(durationSec / 60);
-  const sec = durationSec % 60;
-
-  return (
-    <div className="renderer-audio">
-      <div className="renderer-audio-player">
-        <div className="renderer-audio-art">
-          <Music size={32} strokeWidth={1} />
-        </div>
-        <div className="renderer-audio-details">
-          <span className="renderer-audio-title">{file.name}</span>
-          <span className="renderer-audio-format">{ext} · {formatSize(file.size)}</span>
-        </div>
-        <div className="renderer-audio-controls">
-          <button className="renderer-audio-btn"><Play size={16} /></button>
-        </div>
-      </div>
-      <div className="renderer-audio-wave">
-        <div className="renderer-audio-progress" />
-        <div className="renderer-audio-time">
-          <span>0:00</span>
-          <span>{min}:{sec.toString().padStart(2, "0")}</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function VideoRenderer({ file }: { file: FileNode }) {
-  const ext = file.extension?.toUpperCase() ?? "VIDEO";
-
-  return (
-    <div className="renderer-video">
-      <div className="renderer-video-screen">
-        <Film size={56} strokeWidth={0.8} />
-        <span className="renderer-video-badge">{ext}</span>
-      </div>
-      <div className="renderer-video-bar">
-        <button className="renderer-audio-btn"><Play size={14} /></button>
-        <div className="renderer-video-progress"><div /></div>
-        <button className="renderer-audio-btn"><Volume2 size={14} /></button>
-        <button className="renderer-audio-btn"><Maximize size={14} /></button>
-        <span className="renderer-video-size">{formatSize(file.size)}</span>
-      </div>
-    </div>
-  );
-}
+/* ---------- PDF Renderer ---------- */
 
 function PdfRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const pages = meta?.pages ? Number(meta.pages) : Math.max(1, Math.ceil(file.size / 50000));
+  const [currentPage, setCurrentPage] = useState(1);
+
+  const pageLines = useMemo(() =>
+    Array.from({ length: pages }, () =>
+      Array.from({ length: 14 + Math.floor(Math.random() * 6) }, () =>
+        40 + Math.floor(Math.random() * 55)
+      )
+    ), [pages]);
+
   return (
-    <div className="renderer-pdf">
-      <div className="renderer-pdf-page">
-        <FileText size={48} strokeWidth={0.8} />
-        <div className="renderer-pdf-lines">
-          {Array.from({ length: 12 }, (_, i) => (
-            <div key={i} className="renderer-pdf-line" style={{ width: `${60 + Math.random() * 35}%` }} />
-          ))}
+    <div className="renderer-pdf-v2">
+      <div className="renderer-pdf-toolbar">
+        <div className="renderer-pdf-nav">
+          <button className="renderer-pdf-btn" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => p - 1)}>
+            <ChevronLeft size={14} />
+          </button>
+          <span className="renderer-pdf-page-info">
+            <strong>{currentPage}</strong> / {pages}
+          </span>
+          <button className="renderer-pdf-btn" disabled={currentPage >= pages} onClick={() => setCurrentPage((p) => p + 1)}>
+            <ChevronRight size={14} />
+          </button>
+        </div>
+        <div className="renderer-pdf-meta-bar">
+          {meta?.title && <span>{String(meta.title)}</span>}
+          {meta?.author && <span>by {String(meta.author)}</span>}
+        </div>
+        <div className="renderer-pdf-actions">
+          <ZoomOut size={13} className="renderer-pdf-icon-btn" />
+          <ZoomIn size={13} className="renderer-pdf-icon-btn" />
         </div>
       </div>
-      <div className="renderer-image-info">
-        <h3>{file.name}</h3>
-        <div className="renderer-image-details">
-          <span>PDF Document</span>
-          <span>{formatSize(file.size)}</span>
-          <span>{formatDate(file.modifiedAt)}</span>
+      <div className="renderer-pdf-viewport">
+        <div className="renderer-pdf-page-v2">
+          {currentPage === 1 && meta?.title && (
+            <div className="renderer-pdf-title-block">
+              <div className="renderer-pdf-doc-title">{String(meta.title)}</div>
+              {meta?.author && <div className="renderer-pdf-doc-author">{String(meta.author)}</div>}
+              <div className="renderer-pdf-doc-divider" />
+            </div>
+          )}
+          <div className="renderer-pdf-lines-v2">
+            {(pageLines[currentPage - 1] ?? []).map((w, i) => (
+              <div key={i} className="renderer-pdf-line" style={{ width: `${w}%` }} />
+            ))}
+          </div>
+          <div className="renderer-pdf-page-number">{currentPage}</div>
+        </div>
+      </div>
+      <div className="renderer-pdf-info-bar">
+        <span>{pages} pages</span>
+        <span>{formatSize(file.size)}</span>
+        {meta?.producer && <span>{String(meta.producer)}</span>}
+        <span>{formatDate(file.modifiedAt)}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Image Renderer ---------- */
+
+function ImageRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const w = meta?.width ? Number(meta.width) : (file.size > 5000000 ? 3840 : file.size > 1000000 ? 1920 : 800);
+  const h = meta?.height ? Number(meta.height) : (file.size > 5000000 ? 2160 : file.size > 1000000 ? 1080 : 600);
+  const ext = file.extension?.toUpperCase() ?? "IMG";
+
+  return (
+    <div className="renderer-image-v2">
+      <div className="renderer-image-preview">
+        <div className="renderer-image-checkerboard">
+          <Image size={64} strokeWidth={0.6} />
+        </div>
+      </div>
+      <div className="renderer-image-sidebar">
+        <div className="renderer-image-section">
+          <h4>Info</h4>
+          <div className="renderer-image-prop"><span>Dimensions</span><span>{w} × {h}</span></div>
+          <div className="renderer-image-prop"><span>Format</span><span>{ext}</span></div>
+          <div className="renderer-image-prop"><span>Size</span><span>{formatSize(file.size)}</span></div>
+          {meta?.colorSpace && <div className="renderer-image-prop"><span>Color</span><span>{String(meta.colorSpace)}</span></div>}
+        </div>
+        {meta?.camera && (
+          <div className="renderer-image-section">
+            <h4>Camera</h4>
+            <div className="renderer-image-prop"><span>Device</span><span>{String(meta.camera)}</span></div>
+            {meta?.aperture && <div className="renderer-image-prop"><span>Aperture</span><span>{String(meta.aperture)}</span></div>}
+            {meta?.iso && <div className="renderer-image-prop"><span>ISO</span><span>{String(meta.iso)}</span></div>}
+          </div>
+        )}
+        <div className="renderer-image-section">
+          <h4>File</h4>
+          <div className="renderer-image-prop"><span>Modified</span><span>{formatDate(file.modifiedAt)}</span></div>
+          <div className="renderer-image-prop"><span>Created</span><span>{formatDate(file.createdAt)}</span></div>
         </div>
       </div>
     </div>
   );
 }
 
-function SpreadsheetRenderer({ file }: { file: FileNode }) {
+/* ---------- Audio Renderer ---------- */
+
+function AudioRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const ext = file.extension?.toUpperCase() ?? "AUDIO";
+  const duration = meta?.duration ? Number(meta.duration) : Math.floor(file.size / 16000);
+  const bitrate = meta?.bitrate ? Number(meta.bitrate) : 256;
+
+  const waveform = useMemo(() =>
+    Array.from({ length: 60 }, () => 0.15 + Math.random() * 0.85),
+    []
+  );
+
   return (
-    <div className="renderer-spreadsheet">
-      <div className="renderer-spreadsheet-mock">
-        <div className="renderer-spreadsheet-header">
-          {["A", "B", "C", "D", "E"].map((col) => (
-            <div key={col} className="renderer-spreadsheet-col">{col}</div>
-          ))}
+    <div className="renderer-audio-v2">
+      <div className="renderer-audio-card">
+        <div className="renderer-audio-cover">
+          <Music size={36} strokeWidth={1} />
         </div>
-        {Array.from({ length: 6 }, (_, r) => (
-          <div key={r} className="renderer-spreadsheet-row">
-            <div className="renderer-spreadsheet-rownum">{r + 1}</div>
-            {Array.from({ length: 5 }, (_, c) => (
-              <div key={c} className="renderer-spreadsheet-cell" />
+        <div className="renderer-audio-info-v2">
+          <span className="renderer-audio-track">{file.name.replace(/\.[^.]+$/, "")}</span>
+          {meta?.artist && <span className="renderer-audio-artist">{String(meta.artist)}</span>}
+          {meta?.album && <span className="renderer-audio-album">{String(meta.album)}</span>}
+        </div>
+      </div>
+      <div className="renderer-audio-waveform">
+        {waveform.map((h, i) => (
+          <div key={i} className="renderer-audio-bar" style={{ height: `${h * 100}%` }} />
+        ))}
+      </div>
+      <div className="renderer-audio-transport">
+        <button className="renderer-audio-play"><Play size={18} /></button>
+        <div className="renderer-audio-timeline">
+          <div className="renderer-audio-progress-v2"><div /></div>
+          <div className="renderer-audio-timestamps">
+            <span>0:00</span>
+            <span>{fmtDuration(duration)}</span>
+          </div>
+        </div>
+      </div>
+      <div className="renderer-audio-tags">
+        <span>{ext}</span>
+        <span>{bitrate} kbps</span>
+        <span>{formatSize(file.size)}</span>
+        <span>{fmtDuration(duration)}</span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Video Renderer ---------- */
+
+function VideoRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const ext = file.extension?.toUpperCase() ?? "VIDEO";
+  const duration = meta?.duration ? Number(meta.duration) : Math.floor(file.size / 100000);
+  const w = meta?.width ? Number(meta.width) : 1920;
+  const h = meta?.height ? Number(meta.height) : 1080;
+
+  return (
+    <div className="renderer-video-v2">
+      <div className="renderer-video-player">
+        <div className="renderer-video-canvas">
+          <Film size={64} strokeWidth={0.6} />
+          <button className="renderer-video-big-play"><Play size={28} /></button>
+        </div>
+        <div className="renderer-video-controls">
+          <button className="renderer-video-ctrl-btn"><Play size={14} /></button>
+          <span className="renderer-video-time">0:00 / {fmtDuration(duration)}</span>
+          <div className="renderer-video-progress-v2"><div /></div>
+          <button className="renderer-video-ctrl-btn"><Volume2 size={14} /></button>
+          <button className="renderer-video-ctrl-btn"><Maximize size={14} /></button>
+        </div>
+      </div>
+      <div className="renderer-video-details">
+        <div className="renderer-video-tag">{ext}</div>
+        <div className="renderer-video-tag">{w}×{h}</div>
+        {meta?.fps && <div className="renderer-video-tag">{String(meta.fps)} fps</div>}
+        {meta?.codec && <div className="renderer-video-tag">{String(meta.codec)}</div>}
+        <div className="renderer-video-tag">{formatSize(file.size)}</div>
+        <div className="renderer-video-tag">{fmtDuration(duration)}</div>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- Spreadsheet Renderer ---------- */
+
+function SpreadsheetRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const sheets = meta?.sheets ? Number(meta.sheets) : 1;
+  const rows = meta?.rows ? Number(meta.rows) : 100;
+  const cols = meta?.cols ? Number(meta.cols) : 5;
+  const sheetNames = meta?.sheetNames ? String(meta.sheetNames).split(",") : ["Sheet 1"];
+  const [activeSheet, setActiveSheet] = useState(0);
+
+  const colLetters = Array.from({ length: Math.min(cols, 8) }, (_, i) => String.fromCharCode(65 + i));
+
+  return (
+    <div className="renderer-xl">
+      <div className="renderer-xl-toolbar">
+        <FileSpreadsheet size={13} />
+        <span className="renderer-xl-title">{file.name}</span>
+        <span className="renderer-xl-dims">{rows.toLocaleString()} rows × {cols} cols</span>
+      </div>
+      <div className="renderer-xl-formula">
+        <span className="renderer-xl-cell-ref">A1</span>
+        <span className="renderer-xl-fx">fx</span>
+        <div className="renderer-xl-formula-input" />
+      </div>
+      <div className="renderer-xl-grid">
+        <div className="renderer-xl-header">
+          <div className="renderer-xl-corner" />
+          {colLetters.map((c) => (<div key={c} className="renderer-xl-col-head">{c}</div>))}
+        </div>
+        {Array.from({ length: 10 }, (_, r) => (
+          <div key={r} className="renderer-xl-row">
+            <div className="renderer-xl-row-head">{r + 1}</div>
+            {colLetters.map((_, c) => (
+              <div key={c} className={`renderer-xl-cell ${r === 0 && c === 0 ? "selected" : ""}`} />
             ))}
           </div>
         ))}
       </div>
-      <div className="renderer-image-info">
-        <h3>{file.name}</h3>
-        <div className="renderer-image-details">
-          <span>{file.extension?.toUpperCase()} Spreadsheet</span>
-          <span>{formatSize(file.size)}</span>
+      {sheets > 1 && (
+        <div className="renderer-xl-sheets">
+          {sheetNames.map((name, i) => (
+            <button key={i} className={`renderer-xl-sheet-tab ${i === activeSheet ? "active" : ""}`} onClick={() => setActiveSheet(i)}>
+              {name}
+            </button>
+          ))}
         </div>
+      )}
+    </div>
+  );
+}
+
+/* ---------- Archive Renderer ---------- */
+
+function ArchiveRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const fileCount = meta?.files ? Number(meta.files) : 24;
+  const folderCount = meta?.folders ? Number(meta.folders) : 4;
+  const compression = meta?.compressed ? String(meta.compressed) : "ZIP";
+
+  const mockTree = [
+    { name: "src/", type: "folder", indent: 0 },
+    { name: "components/", type: "folder", indent: 1 },
+    { name: "App.tsx", type: "file", indent: 2 },
+    { name: "index.ts", type: "file", indent: 2 },
+    { name: "utils/", type: "folder", indent: 1 },
+    { name: "helpers.ts", type: "file", indent: 2 },
+    { name: "assets/", type: "folder", indent: 1 },
+    { name: "logo.svg", type: "file", indent: 2 },
+    { name: "package.json", type: "file", indent: 0 },
+    { name: "README.md", type: "file", indent: 0 },
+    { name: "tsconfig.json", type: "file", indent: 0 },
+  ];
+
+  return (
+    <div className="renderer-zip">
+      <div className="renderer-zip-toolbar">
+        <Archive size={13} />
+        <span>{file.name}</span>
+        <span className="renderer-zip-stats">
+          {fileCount.toLocaleString()} files, {folderCount} folders · {compression}
+        </span>
+      </div>
+      <div className="renderer-zip-tree">
+        {mockTree.map((entry, i) => (
+          <div key={i} className="renderer-zip-entry" style={{ paddingLeft: entry.indent * 16 + 10 }}>
+            {entry.type === "folder" ? <Folder size={13} color="#e8a854" /> : <File size={13} />}
+            <span>{entry.name}</span>
+          </div>
+        ))}
+        <div className="renderer-zip-more">
+          ... and {Math.max(0, fileCount - 8)} more files
+        </div>
+      </div>
+      <div className="renderer-zip-footer">
+        <span>Total: {formatSize(file.size)}</span>
+        <span>{formatDate(file.modifiedAt)}</span>
       </div>
     </div>
   );
 }
 
-function ArchiveRenderer({ file }: { file: FileNode }) {
+/* ---------- Document Renderer (docx, rtf) ---------- */
+
+function DocumentRenderer({ file }: { file: FileNode }) {
+  const meta = file.metadata;
+  const pages = meta?.pages ? Number(meta.pages) : Math.max(1, Math.ceil(file.size / 40000));
+  const words = meta?.words ? Number(meta.words) : pages * 350;
+
+  const paragraphs = useMemo(() =>
+    Array.from({ length: 8 }, () =>
+      Array.from({ length: 2 + Math.floor(Math.random() * 3) }, () =>
+        35 + Math.floor(Math.random() * 60)
+      )
+    ), []);
+
   return (
-    <div className="renderer-archive">
-      <Archive size={48} strokeWidth={1} />
-      <h3>{file.name}</h3>
-      <div className="renderer-archive-mock">
-        <div className="renderer-archive-entry">contents/</div>
-        <div className="renderer-archive-entry">&nbsp;&nbsp;data/</div>
-        <div className="renderer-archive-entry">&nbsp;&nbsp;&nbsp;&nbsp;files...</div>
-        <div className="renderer-archive-entry">&nbsp;&nbsp;README.md</div>
+    <div className="renderer-doc">
+      <div className="renderer-doc-toolbar">
+        <FileText size={13} />
+        <span className="renderer-doc-title">{meta?.title ? String(meta.title) : file.name}</span>
+        <div className="renderer-doc-stats">
+          <span>{pages} pages</span>
+          <span>{words.toLocaleString()} words</span>
+        </div>
       </div>
-      <div className="renderer-image-details">
-        <span>{file.extension?.toUpperCase()} Archive</span>
+      <div className="renderer-doc-viewport">
+        <div className="renderer-doc-page">
+          {meta?.title && (
+            <div className="renderer-doc-heading">{String(meta.title)}</div>
+          )}
+          {meta?.author && (
+            <div className="renderer-doc-author">{String(meta.author)}</div>
+          )}
+          {paragraphs.map((para, pi) => (
+            <div key={pi} className="renderer-doc-paragraph">
+              {para.map((w, li) => (
+                <div key={li} className="renderer-doc-line" style={{ width: `${w}%` }} />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+      <div className="renderer-doc-statusbar">
+        <span>Page 1 of {pages}</span>
+        <span>{words.toLocaleString()} words</span>
         <span>{formatSize(file.size)}</span>
       </div>
     </div>
@@ -399,61 +566,36 @@ function GenericRenderer({ file }: { file: FileNode }) {
   );
 }
 
-/* ---------- Main FileViewer ---------- */
+/* ---------- Main ---------- */
 
 function getRenderer(file: FileNode) {
   const ext = file.extension?.toLowerCase() ?? "";
 
-  // CSV with content → table
   if (ext === "csv" && file.content) return <CsvRenderer file={file} />;
-
-  // Markdown with content → rich
   if (ext === "md" && file.content) return <MarkdownRenderer file={file} />;
-
-  // SVG → live preview + source
   if (ext === "svg") return <SvgRenderer file={file} />;
 
-  // Code/text with content → code view
   const isTextLike =
     file.content !== undefined &&
-    (["code", "document"].includes(file.type) ||
+    (["code"].includes(file.type) ||
       ext in langMap ||
       ["gitconfig", "bashrc", "dockerfile"].some((n) => file.name.toLowerCase().includes(n)));
 
   if (isTextLike && file.content) return <CodeRenderer file={file} />;
 
-  // Image
-  if (file.type === "image" || ["png", "jpg", "jpeg", "gif", "webp", "bmp", "ico"].includes(ext)) {
-    return <ImagePlaceholder file={file} />;
-  }
-
-  // Audio
-  if (file.type === "audio" || ["mp3", "wav", "ogg", "flac", "aac"].includes(ext)) {
-    return <AudioRenderer file={file} />;
-  }
-
-  // Video
-  if (file.type === "video" || ["mp4", "webm", "avi", "mov", "mkv"].includes(ext)) {
-    return <VideoRenderer file={file} />;
-  }
-
-  // PDF
   if (file.type === "pdf" || ext === "pdf") return <PdfRenderer file={file} />;
 
-  // Spreadsheet
-  if (file.type === "spreadsheet" || ["xls", "xlsx"].includes(ext)) {
-    return <SpreadsheetRenderer file={file} />;
-  }
+  if (file.type === "document" || ["docx", "doc", "rtf"].includes(ext)) return <DocumentRenderer file={file} />;
 
-  // Archive
-  if (file.type === "archive" || ["zip", "rar", "tar", "gz", "7z"].includes(ext)) {
-    return <ArchiveRenderer file={file} />;
-  }
+  if (file.type === "image" || ["png", "jpg", "jpeg", "gif", "webp", "bmp", "ico"].includes(ext)) return <ImageRenderer file={file} />;
 
-  // Document without content
-  if (file.type === "document") {
-    return <PdfRenderer file={file} />;
-  }
+  if (file.type === "audio" || ["mp3", "wav", "ogg", "flac", "aac", "m3u"].includes(ext)) return <AudioRenderer file={file} />;
+
+  if (file.type === "video" || ["mp4", "webm", "avi", "mov", "mkv"].includes(ext)) return <VideoRenderer file={file} />;
+
+  if (file.type === "spreadsheet" || ["xls", "xlsx"].includes(ext)) return <SpreadsheetRenderer file={file} />;
+
+  if (file.type === "archive" || ["zip", "rar", "tar", "gz", "7z"].includes(ext)) return <ArchiveRenderer file={file} />;
 
   return <GenericRenderer file={file} />;
 }
@@ -462,14 +604,9 @@ export default function FileViewer({ fs, file, onClose, onSave }: FileViewerProp
   const [editing, setEditing] = useState(false);
   const canEdit = isEditable(file);
 
-  const path = getPath(fs, file.id)
-    .map((n) => n.name)
-    .join(" / ");
+  const path = getPath(fs, file.id).map((n) => n.name).join(" / ");
 
-  const handleSave = (content: string) => {
-    onSave(file.id, content);
-    setEditing(false);
-  };
+  const handleSave = (content: string) => { onSave(file.id, content); setEditing(false); };
 
   return (
     <div className="file-viewer">
@@ -484,29 +621,14 @@ export default function FileViewer({ fs, file, onClose, onSave }: FileViewerProp
           <span>{formatDate(file.modifiedAt)}</span>
         </div>
         {canEdit && !editing && (
-          <button
-            className="file-viewer-edit-btn"
-            onClick={() => setEditing(true)}
-            title="Edit file"
-          >
+          <button className="file-viewer-edit-btn" onClick={() => setEditing(true)} title="Edit file">
             <Pencil size={13} />
           </button>
         )}
-        <button className="file-viewer-close" onClick={onClose}>
-          <X size={14} />
-        </button>
+        <button className="file-viewer-close" onClick={onClose}><X size={14} /></button>
       </header>
-
       <div className="file-viewer-body">
-        {editing ? (
-          <EditorView
-            file={file}
-            onSave={handleSave}
-            onCancel={() => setEditing(false)}
-          />
-        ) : (
-          getRenderer(file)
-        )}
+        {editing ? <EditorView file={file} onSave={handleSave} onCancel={() => setEditing(false)} /> : getRenderer(file)}
       </div>
     </div>
   );

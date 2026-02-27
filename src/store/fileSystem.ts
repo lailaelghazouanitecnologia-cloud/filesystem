@@ -22,7 +22,7 @@ function detectType(name: string): FileType {
   return map[ext] || "file";
 }
 
-function makeFile(name: string, parentId: string, size?: number, content?: string): FileNode {
+function makeFile(name: string, parentId: string, size?: number, content?: string, metadata?: Record<string, string | number>): FileNode {
   const ext = name.includes(".") ? name.split(".").pop()! : undefined;
   return {
     id: id(),
@@ -34,6 +34,7 @@ function makeFile(name: string, parentId: string, size?: number, content?: strin
     parentId,
     extension: ext,
     content,
+    metadata,
   };
 }
 
@@ -67,15 +68,15 @@ export function createInitialFileSystem(): Map<string, FileNode> {
 
   // Documents
   const docs = add(makeFolder("Documents", root.id));
-  add(makeFile("resume.pdf", docs.id, 245000));
+  add(makeFile("resume.pdf", docs.id, 245000, undefined, { pages: 2, author: "John Doe", title: "Resume — John Doe", producer: "LaTeX" }));
   add(makeFile("notes.md", docs.id, 3200, "# Meeting Notes\n\n- Discussed project timeline\n- Assigned tasks to team members\n- Next meeting: Friday 3pm\n\n## Action Items\n1. Update documentation\n2. Review pull requests\n3. Deploy staging environment"));
-  add(makeFile("report-2024.docx", docs.id, 890000));
-  add(makeFile("budget.xlsx", docs.id, 156000));
+  add(makeFile("report-2024.docx", docs.id, 890000, undefined, { pages: 24, author: "Analytics Team", title: "Annual Report 2024", words: 8540 }));
+  add(makeFile("budget.xlsx", docs.id, 156000, undefined, { sheets: 3, rows: 142, cols: 8, sheetNames: "Summary,Q1-Q2,Q3-Q4" }));
   add(makeFile("todo.txt", docs.id, 512, "- Build file explorer\n- Add search feature\n- Implement dark mode\n- Deploy to production"));
 
   const workDocs = add(makeFolder("Work", docs.id));
-  add(makeFile("contract.pdf", workDocs.id, 1200000));
-  add(makeFile("presentation.pdf", workDocs.id, 5400000));
+  add(makeFile("contract.pdf", workDocs.id, 1200000, undefined, { pages: 12, author: "Legal Dept", title: "Service Agreement", producer: "Adobe Acrobat" }));
+  add(makeFile("presentation.pdf", workDocs.id, 5400000, undefined, { pages: 38, author: "Product Team", title: "Q4 Strategy Deck", producer: "Keynote" }));
   add(makeFile("meeting-minutes.md", workDocs.id, 2800, "# Sprint Planning\n\nDate: 2024-01-15\n\n## Attendees\n- Alice, Bob, Charlie\n\n## Discussion\nReviewed backlog items and estimated story points."));
 
   // Projects
@@ -102,42 +103,42 @@ export function createInitialFileSystem(): Map<string, FileNode> {
 
   // Pictures
   const pics = add(makeFolder("Pictures", root.id));
-  add(makeFile("vacation-beach.jpg", pics.id, 3400000));
-  add(makeFile("family-photo.png", pics.id, 5200000));
-  add(makeFile("screenshot-2024.png", pics.id, 890000));
+  add(makeFile("vacation-beach.jpg", pics.id, 3400000, undefined, { width: 4032, height: 3024, camera: "iPhone 15 Pro", iso: 64, aperture: "f/1.8", colorSpace: "sRGB" }));
+  add(makeFile("family-photo.png", pics.id, 5200000, undefined, { width: 5472, height: 3648, camera: "Canon EOS R6", iso: 200, aperture: "f/2.8", colorSpace: "Adobe RGB" }));
+  add(makeFile("screenshot-2024.png", pics.id, 890000, undefined, { width: 2560, height: 1440, colorSpace: "sRGB" }));
   add(makeFile("logo.svg", pics.id, 12000, '<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">\n  <circle cx="50" cy="50" r="40" fill="#3b82f6"/>\n</svg>'));
 
   const wallpapers = add(makeFolder("Wallpapers", pics.id));
-  add(makeFile("mountains.jpg", wallpapers.id, 8200000));
-  add(makeFile("sunset.jpg", wallpapers.id, 6100000));
-  add(makeFile("city-night.png", wallpapers.id, 9500000));
+  add(makeFile("mountains.jpg", wallpapers.id, 8200000, undefined, { width: 7680, height: 4320, colorSpace: "sRGB" }));
+  add(makeFile("sunset.jpg", wallpapers.id, 6100000, undefined, { width: 3840, height: 2160, colorSpace: "Display P3" }));
+  add(makeFile("city-night.png", wallpapers.id, 9500000, undefined, { width: 5120, height: 2880, colorSpace: "sRGB" }));
 
   // Music
   const music = add(makeFolder("Music", root.id));
   add(makeFile("playlist.m3u", music.id, 340));
   const rock = add(makeFolder("Rock", music.id));
-  add(makeFile("track-01.mp3", rock.id, 7800000));
-  add(makeFile("track-02.mp3", rock.id, 6200000));
-  add(makeFile("track-03.flac", rock.id, 32000000));
+  add(makeFile("track-01.mp3", rock.id, 7800000, undefined, { duration: 245, bitrate: 320, artist: "The Amplifiers", album: "Electric Surge" }));
+  add(makeFile("track-02.mp3", rock.id, 6200000, undefined, { duration: 198, bitrate: 320, artist: "The Amplifiers", album: "Electric Surge" }));
+  add(makeFile("track-03.flac", rock.id, 32000000, undefined, { duration: 312, bitrate: 1411, artist: "The Amplifiers", album: "Electric Surge" }));
 
   const electronic = add(makeFolder("Electronic", music.id));
-  add(makeFile("synthwave-mix.mp3", electronic.id, 12000000));
-  add(makeFile("ambient-01.ogg", electronic.id, 4500000));
+  add(makeFile("synthwave-mix.mp3", electronic.id, 12000000, undefined, { duration: 487, bitrate: 320, artist: "NeonWave", album: "Retrograde" }));
+  add(makeFile("ambient-01.ogg", electronic.id, 4500000, undefined, { duration: 360, bitrate: 192, artist: "Drift", album: "Atmospheres" }));
 
   // Videos
   const videos = add(makeFolder("Videos", root.id));
-  add(makeFile("tutorial-react.mp4", videos.id, 245000000));
-  add(makeFile("demo-recording.webm", videos.id, 89000000));
-  add(makeFile("presentation.mov", videos.id, 156000000));
+  add(makeFile("tutorial-react.mp4", videos.id, 245000000, undefined, { duration: 2340, width: 1920, height: 1080, fps: 30, codec: "H.264" }));
+  add(makeFile("demo-recording.webm", videos.id, 89000000, undefined, { duration: 890, width: 1920, height: 1080, fps: 60, codec: "VP9" }));
+  add(makeFile("presentation.mov", videos.id, 156000000, undefined, { duration: 1560, width: 3840, height: 2160, fps: 24, codec: "ProRes" }));
 
   // Downloads
   const downloads = add(makeFolder("Downloads", root.id));
-  add(makeFile("archive-backup.zip", downloads.id, 67000000));
-  add(makeFile("installer.tar.gz", downloads.id, 34000000));
-  add(makeFile("ebook-rust.pdf", downloads.id, 12000000));
-  add(makeFile("dataset.csv", downloads.id, 28000000));
-  add(makeFile("font-pack.zip", downloads.id, 4500000));
-  add(makeFile("cheatsheet.png", downloads.id, 1200000));
+  add(makeFile("archive-backup.zip", downloads.id, 67000000, undefined, { files: 1247, folders: 86, compressed: "DEFLATE" }));
+  add(makeFile("installer.tar.gz", downloads.id, 34000000, undefined, { files: 342, folders: 28, compressed: "gzip" }));
+  add(makeFile("ebook-rust.pdf", downloads.id, 12000000, undefined, { pages: 584, author: "Steve Klabnik", title: "The Rust Programming Language", producer: "mdBook" }));
+  add(makeFile("dataset.csv", downloads.id, 28000000, "id,name,email,country,score,date\n1,Alice Johnson,alice@example.com,USA,95.2,2024-01-15\n2,Bob Smith,bob@example.com,UK,87.8,2024-01-16\n3,Carlos Rivera,carlos@example.com,Mexico,92.1,2024-01-17\n4,Diana Chen,diana@example.com,China,98.5,2024-01-18\n5,Erik Müller,erik@example.com,Germany,88.3,2024-01-19\n6,Fatima Al-Hassan,fatima@example.com,UAE,91.7,2024-01-20\n7,Grace Kim,grace@example.com,Korea,96.0,2024-01-21\n8,Hiroshi Tanaka,hiroshi@example.com,Japan,89.4,2024-01-22", { rows: 50000, cols: 6 }));
+  add(makeFile("font-pack.zip", downloads.id, 4500000, undefined, { files: 48, folders: 4, compressed: "DEFLATE" }));
+  add(makeFile("cheatsheet.png", downloads.id, 1200000, undefined, { width: 1920, height: 1080, colorSpace: "sRGB" }));
 
   // Config
   const config = add(makeFolder(".config", root.id));
