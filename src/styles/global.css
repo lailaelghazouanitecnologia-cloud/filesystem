@@ -939,6 +939,13 @@ body {
   cursor: default;
 }
 
+/* ---------- File icon SVGs ---------- */
+
+.file-icon-svg svg {
+  width: 100%;
+  height: 100%;
+}
+
 /* ---------- Animations ---------- */
 
 @keyframes fade-in {

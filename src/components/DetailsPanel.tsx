@@ -34,7 +34,7 @@ export default function DetailsPanel({ fs, file, onClose }: DetailsPanelProps) {
       </div>
 
       <div className="details-icon-section">
-        <FileIcon type={file.type} size={32} />
+        <FileIcon type={file.type} name={file.name} size={32} />
         <h4 className="details-filename">{file.name}</h4>
       </div>
 

@@ -92,7 +92,7 @@ export default function SearchBar({ fs, onSelect }: SearchBarProps) {
               }}
               onMouseEnter={() => setSelectedIdx(i)}
             >
-              <FileIcon type={node.type} size={14} />
+              <FileIcon type={node.type} name={node.name} size={14} />
               <div className="search-result-info">
                 <span className="search-result-name">{node.name}</span>
                 <span className="search-result-path">

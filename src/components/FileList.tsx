@@ -129,7 +129,7 @@ export default function FileList({
               }}
             >
               <div className="file-grid-icon">
-                <FileIcon type={node.type} size={20} />
+                <FileIcon type={node.type} name={node.name} size={20} />
               </div>
               <span className="file-grid-name" title={node.name}>
                 {node.name}
@@ -158,7 +158,7 @@ export default function FileList({
               }}
             >
               <div className="list-cell icon-cell">
-                <FileIcon type={node.type} size={15} />
+                <FileIcon type={node.type} name={node.name} size={15} />
               </div>
               <div className="list-cell name-cell">{node.name}</div>
               <div className="list-cell date-cell">{formatDate(node.modifiedAt)}</div>
