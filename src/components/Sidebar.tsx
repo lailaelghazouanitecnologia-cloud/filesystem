@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import type { FileNode } from "../types";
 import { getChildren } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
+import { ChevronRight, FolderOpen } from "lucide-react";
 
 interface SidebarProps {
   fs: Map<string, FileNode>;
@@ -34,7 +35,7 @@ function FolderTree({
     <div className="tree-node">
       <div
         className={`tree-item ${isActive ? "active" : ""}`}
-        style={{ paddingLeft: depth * 16 + 8 }}
+        style={{ paddingLeft: depth * 14 + 8 }}
         onClick={() => {
           onNavigate(nodeId);
           setExpanded(true);
@@ -47,11 +48,9 @@ function FolderTree({
             setExpanded(!expanded);
           }}
         >
-          <span className="material-symbols-rounded" style={{ fontSize: 16 }}>
-            chevron_right
-          </span>
+          <ChevronRight size={12} />
         </span>
-        <FileIcon type="folder" size={18} />
+        <FileIcon type="folder" size={14} />
         <span className="tree-name">{node.name}</span>
       </div>
       {expanded &&
@@ -73,14 +72,12 @@ export default function Sidebar({ fs, rootId, currentFolderId, onNavigate }: Sid
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <span className="material-symbols-rounded" style={{ fontSize: 22, color: "#3b82f6" }}>
-          folder_special
-        </span>
+        <FolderOpen size={15} color="#61afef" strokeWidth={1.8} />
         <span className="sidebar-title">Explorer</span>
       </div>
 
       <div className="sidebar-section">
-        <div className="sidebar-section-title">Quick Access</div>
+        <div className="sidebar-section-title">Pinned</div>
         {["Documents", "Pictures", "Downloads", "Projects"].map((name) => {
           const node = Array.from(fs.values()).find(
             (n) => n.name === name && n.parentId === rootId
@@ -92,15 +89,15 @@ export default function Sidebar({ fs, rootId, currentFolderId, onNavigate }: Sid
               className={`quick-access-item ${node.id === currentFolderId ? "active" : ""}`}
               onClick={() => onNavigate(node.id)}
             >
-              <FileIcon type="folder" size={18} />
+              <FileIcon type="folder" size={14} />
               <span>{name}</span>
             </div>
           );
         })}
       </div>
 
-      <div className="sidebar-section">
-        <div className="sidebar-section-title">Folders</div>
+      <div className="sidebar-section sidebar-section-tree">
+        <div className="sidebar-section-title">Tree</div>
         <div className="tree-container">
           <FolderTree
             fs={fs}
@@ -117,7 +114,7 @@ export default function Sidebar({ fs, rootId, currentFolderId, onNavigate }: Sid
           <div className="storage-bar">
             <div className="storage-used" style={{ width: "42%" }} />
           </div>
-          <span className="storage-text">128.4 GB of 512 GB used</span>
+          <span className="storage-text">128.4 GB / 512 GB</span>
         </div>
       </div>
     </aside>

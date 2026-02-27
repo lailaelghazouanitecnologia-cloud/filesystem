@@ -1,6 +1,7 @@
 import React from "react";
 import type { FileNode } from "../types";
 import { getPath } from "../store/fileSystem";
+import { ChevronRight } from "lucide-react";
 
 interface BreadcrumbProps {
   fs: Map<string, FileNode>;
@@ -15,11 +16,7 @@ export default function Breadcrumb({ fs, currentFolderId, onNavigate }: Breadcru
     <div className="breadcrumb">
       {path.map((node, i) => (
         <React.Fragment key={node.id}>
-          {i > 0 && (
-            <span className="material-symbols-rounded breadcrumb-sep" style={{ fontSize: 16 }}>
-              chevron_right
-            </span>
-          )}
+          {i > 0 && <ChevronRight size={12} className="breadcrumb-sep" />}
           <button
             className={`breadcrumb-item ${i === path.length - 1 ? "active" : ""}`}
             onClick={() => onNavigate(node.id)}

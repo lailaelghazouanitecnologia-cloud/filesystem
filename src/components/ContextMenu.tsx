@@ -1,5 +1,16 @@
 import React, { useEffect, useRef } from "react";
 import type { ContextMenuState } from "../types";
+import {
+  ExternalLink,
+  Pencil,
+  Copy,
+  FolderInput,
+  Info,
+  Trash2,
+  FolderOpen,
+  FilePlus,
+  FolderPlus,
+} from "lucide-react";
 
 interface ContextMenuProps {
   state: ContextMenuState;
@@ -9,26 +20,26 @@ interface ContextMenuProps {
 }
 
 const fileActions = [
-  { id: "open", label: "Open", icon: "open_in_new" },
-  { id: "rename", label: "Rename", icon: "edit" },
-  { id: "copy", label: "Copy", icon: "content_copy" },
-  { id: "move", label: "Move to...", icon: "drive_file_move" },
-  { id: "divider1", label: "", icon: "" },
-  { id: "details", label: "Details", icon: "info" },
-  { id: "divider2", label: "", icon: "" },
-  { id: "delete", label: "Delete", icon: "delete", danger: true },
-];
+  { id: "open", label: "Open", Icon: ExternalLink },
+  { id: "rename", label: "Rename", Icon: Pencil },
+  { id: "copy", label: "Copy", Icon: Copy },
+  { id: "move", label: "Move to...", Icon: FolderInput },
+  { id: "divider1" },
+  { id: "details", label: "Details", Icon: Info },
+  { id: "divider2" },
+  { id: "delete", label: "Delete", Icon: Trash2, danger: true },
+] as const;
 
 const folderActions = [
-  { id: "open", label: "Open", icon: "folder_open" },
-  { id: "rename", label: "Rename", icon: "edit" },
-  { id: "newFile", label: "New File", icon: "note_add" },
-  { id: "newFolder", label: "New Folder", icon: "create_new_folder" },
-  { id: "divider1", label: "", icon: "" },
-  { id: "details", label: "Details", icon: "info" },
-  { id: "divider2", label: "", icon: "" },
-  { id: "delete", label: "Delete", icon: "delete", danger: true },
-];
+  { id: "open", label: "Open", Icon: FolderOpen },
+  { id: "rename", label: "Rename", Icon: Pencil },
+  { id: "newFile", label: "New File", Icon: FilePlus },
+  { id: "newFolder", label: "New Folder", Icon: FolderPlus },
+  { id: "divider1" },
+  { id: "details", label: "Details", Icon: Info },
+  { id: "divider2" },
+  { id: "delete", label: "Delete", Icon: Trash2, danger: true },
+] as const;
 
 export default function ContextMenu({ state, onClose, onAction, isFolder }: ContextMenuProps) {
   const ref = useRef<HTMLDivElement>(null);
@@ -52,7 +63,6 @@ export default function ContextMenu({ state, onClose, onAction, isFolder }: Cont
 
   if (!state.visible) return null;
 
-  // Adjust position to stay within viewport
   const x = Math.min(state.x, window.innerWidth - 200);
   const y = Math.min(state.y, window.innerHeight - 300);
 
@@ -64,16 +74,14 @@ export default function ContextMenu({ state, onClose, onAction, isFolder }: Cont
         ) : (
           <button
             key={action.id}
-            className={`context-menu-item ${(action as any).danger ? "danger" : ""}`}
+            className={`context-menu-item ${"danger" in action && action.danger ? "danger" : ""}`}
             onClick={() => {
               onAction(action.id);
               onClose();
             }}
           >
-            <span className="material-symbols-rounded" style={{ fontSize: 18 }}>
-              {action.icon}
-            </span>
-            <span>{action.label}</span>
+            {"Icon" in action && action.Icon && <action.Icon size={14} strokeWidth={1.6} />}
+            <span>{"label" in action ? action.label : ""}</span>
           </button>
         )
       )}

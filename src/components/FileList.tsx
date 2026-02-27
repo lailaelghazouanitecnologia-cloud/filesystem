@@ -1,7 +1,14 @@
 import React, { useMemo } from "react";
 import type { FileNode, ViewMode, SortField, SortDirection } from "../types";
 import { getChildren, formatSize, formatDate } from "../store/fileSystem";
-import { FileIcon, ActionIcon } from "./Icons";
+import { FileIcon } from "./Icons";
+import {
+  LayoutGrid,
+  List,
+  ArrowUp,
+  ArrowDown,
+  FolderX,
+} from "lucide-react";
 
 interface FileListProps {
   fs: Map<string, FileNode>;
@@ -34,7 +41,6 @@ export default function FileList({
     const items = getChildren(fs, currentFolderId);
 
     items.sort((a, b) => {
-      // Folders always first
       if (a.type === "folder" && b.type !== "folder") return -1;
       if (a.type !== "folder" && b.type === "folder") return 1;
 
@@ -75,9 +81,9 @@ export default function FileList({
     >
       {label}
       {sortField === field && (
-        <span className="material-symbols-rounded" style={{ fontSize: 14, marginLeft: 2 }}>
-          {sortDirection === "asc" ? "arrow_upward" : "arrow_downward"}
-        </span>
+        sortDirection === "asc"
+          ? <ArrowUp size={11} style={{ marginLeft: 2 }} />
+          : <ArrowDown size={11} style={{ marginLeft: 2 }} />
       )}
     </div>
   );
@@ -87,29 +93,27 @@ export default function FileList({
       <div className="file-list-toolbar">
         <span className="file-count">{children.length} items</span>
         <div className="view-toggles">
-          <ActionIcon
-            icon="grid_view"
-            size={20}
-            className={viewMode === "grid" ? "active" : ""}
+          <button
+            className={`view-toggle-btn ${viewMode === "grid" ? "active" : ""}`}
             onClick={() => onViewChange("grid")}
             title="Grid view"
-          />
-          <ActionIcon
-            icon="view_list"
-            size={20}
-            className={viewMode === "list" ? "active" : ""}
+          >
+            <LayoutGrid size={14} />
+          </button>
+          <button
+            className={`view-toggle-btn ${viewMode === "list" ? "active" : ""}`}
             onClick={() => onViewChange("list")}
             title="List view"
-          />
+          >
+            <List size={14} />
+          </button>
         </div>
       </div>
 
       {children.length === 0 ? (
         <div className="empty-folder">
-          <span className="material-symbols-rounded" style={{ fontSize: 64, color: "#334155" }}>
-            folder_off
-          </span>
-          <p>This folder is empty</p>
+          <FolderX size={36} strokeWidth={1.2} />
+          <p>Empty</p>
         </div>
       ) : viewMode === "grid" ? (
         <div className="file-grid">
@@ -125,12 +129,11 @@ export default function FileList({
               }}
             >
               <div className="file-grid-icon">
-                <FileIcon type={node.type} size={40} />
+                <FileIcon type={node.type} size={20} />
               </div>
               <span className="file-grid-name" title={node.name}>
                 {node.name}
               </span>
-              <span className="file-grid-meta">{formatSize(node.size)}</span>
             </div>
           ))}
         </div>
@@ -155,7 +158,7 @@ export default function FileList({
               }}
             >
               <div className="list-cell icon-cell">
-                <FileIcon type={node.type} size={20} />
+                <FileIcon type={node.type} size={15} />
               </div>
               <div className="list-cell name-cell">{node.name}</div>
               <div className="list-cell date-cell">{formatDate(node.modifiedAt)}</div>

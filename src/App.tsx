@@ -3,7 +3,6 @@ import type { ViewMode, SortField, SortDirection, ContextMenuState } from "./typ
 import {
   createInitialFileSystem,
   getRootId,
-  getPath,
   createNode,
   renameNode,
   deleteNode,
@@ -15,6 +14,14 @@ import FileList from "./components/FileList";
 import ContextMenu from "./components/ContextMenu";
 import DetailsPanel from "./components/DetailsPanel";
 import DialogModal from "./components/DialogModal";
+import {
+  ArrowLeft,
+  ArrowRight,
+  ArrowUp,
+  FolderPlus,
+  FilePlus,
+  PanelRight,
+} from "lucide-react";
 
 export default function App() {
   const [fs, setFs] = useState(() => createInitialFileSystem());
@@ -207,35 +214,14 @@ export default function App() {
       <main className="main-content">
         <header className="top-bar">
           <div className="nav-buttons">
-            <button
-              className="nav-btn"
-              onClick={goBack}
-              disabled={historyIdx <= 0}
-              title="Back"
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: 20 }}>
-                arrow_back
-              </span>
+            <button className="nav-btn" onClick={goBack} disabled={historyIdx <= 0} title="Back">
+              <ArrowLeft size={15} />
             </button>
-            <button
-              className="nav-btn"
-              onClick={goForward}
-              disabled={historyIdx >= history.length - 1}
-              title="Forward"
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: 20 }}>
-                arrow_forward
-              </span>
+            <button className="nav-btn" onClick={goForward} disabled={historyIdx >= history.length - 1} title="Forward">
+              <ArrowRight size={15} />
             </button>
-            <button
-              className="nav-btn"
-              onClick={goUp}
-              disabled={!fs.get(currentFolderId)?.parentId}
-              title="Up"
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: 20 }}>
-                arrow_upward
-              </span>
+            <button className="nav-btn" onClick={goUp} disabled={!fs.get(currentFolderId)?.parentId} title="Up">
+              <ArrowUp size={15} />
             </button>
           </div>
 
@@ -258,9 +244,7 @@ export default function App() {
               }
               title="New Folder"
             >
-              <span className="material-symbols-rounded" style={{ fontSize: 20 }}>
-                create_new_folder
-              </span>
+              <FolderPlus size={15} />
             </button>
             <button
               className="nav-btn"
@@ -276,18 +260,14 @@ export default function App() {
               }
               title="New File"
             >
-              <span className="material-symbols-rounded" style={{ fontSize: 20 }}>
-                note_add
-              </span>
+              <FilePlus size={15} />
             </button>
             <button
               className="nav-btn"
               onClick={() => setShowDetails(!showDetails)}
               title="Toggle Details"
             >
-              <span className="material-symbols-rounded" style={{ fontSize: 20 }}>
-                {showDetails ? "info" : "info"}
-              </span>
+              <PanelRight size={15} />
             </button>
           </div>
         </header>

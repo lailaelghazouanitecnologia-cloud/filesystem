@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from "react";
 import type { FileNode } from "../types";
 import { searchFiles } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
+import { Search, X } from "lucide-react";
 
 interface SearchBarProps {
   fs: Map<string, FileNode>;
@@ -55,13 +56,11 @@ export default function SearchBar({ fs, onSelect }: SearchBarProps) {
   return (
     <div className="search-container" ref={containerRef}>
       <div className={`search-bar ${focused ? "focused" : ""}`}>
-        <span className="material-symbols-rounded search-icon" style={{ fontSize: 20 }}>
-          search
-        </span>
+        <Search size={14} className="search-icon" />
         <input
           ref={inputRef}
           type="text"
-          placeholder="Search files... (Ctrl+K)"
+          placeholder="Search... (Ctrl+K)"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onFocus={() => setFocused(true)}
@@ -69,16 +68,15 @@ export default function SearchBar({ fs, onSelect }: SearchBarProps) {
           onKeyDown={handleKeyDown}
         />
         {query && (
-          <span
-            className="material-symbols-rounded search-clear"
-            style={{ fontSize: 18, cursor: "pointer" }}
+          <X
+            size={13}
+            className="search-clear"
+            style={{ cursor: "pointer" }}
             onClick={() => {
               setQuery("");
               inputRef.current?.focus();
             }}
-          >
-            close
-          </span>
+          />
         )}
       </div>
 
@@ -94,7 +92,7 @@ export default function SearchBar({ fs, onSelect }: SearchBarProps) {
               }}
               onMouseEnter={() => setSelectedIdx(i)}
             >
-              <FileIcon type={node.type} size={18} />
+              <FileIcon type={node.type} size={14} />
               <div className="search-result-info">
                 <span className="search-result-name">{node.name}</span>
                 <span className="search-result-path">

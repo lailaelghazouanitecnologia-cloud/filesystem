@@ -2,6 +2,7 @@ import React from "react";
 import type { FileNode } from "../types";
 import { formatSize, formatDate, getPath } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
+import { X } from "lucide-react";
 
 interface DetailsPanelProps {
   fs: Map<string, FileNode>;
@@ -27,17 +28,13 @@ export default function DetailsPanel({ fs, file, onClose }: DetailsPanelProps) {
     <aside className="details-panel">
       <div className="details-header">
         <h3>Details</h3>
-        <span
-          className="material-symbols-rounded action-icon"
-          style={{ fontSize: 20, cursor: "pointer" }}
-          onClick={onClose}
-        >
-          close
-        </span>
+        <button className="details-close" onClick={onClose}>
+          <X size={14} />
+        </button>
       </div>
 
       <div className="details-icon-section">
-        <FileIcon type={file.type} size={56} />
+        <FileIcon type={file.type} size={32} />
         <h4 className="details-filename">{file.name}</h4>
       </div>
 
