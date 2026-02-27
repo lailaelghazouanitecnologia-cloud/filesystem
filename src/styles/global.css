@@ -1566,6 +1566,20 @@ body {
   background: var(--accent-subtle);
 }
 
+/* ---------- Syntax token colors ---------- */
+
+.tok-keyword   { color: oklch(0.72 0.16 300); }
+.tok-string    { color: oklch(0.72 0.14 140); }
+.tok-comment   { color: oklch(0.48 0 0); font-style: italic; }
+.tok-number    { color: oklch(0.74 0.14 70); }
+.tok-operator  { color: oklch(0.65 0.12 210); }
+.tok-punctuation { color: oklch(0.55 0 0); }
+.tok-function  { color: oklch(0.76 0.14 220); }
+.tok-type      { color: oklch(0.72 0.12 190); }
+.tok-property  { color: oklch(0.70 0.10 250); }
+.tok-tag       { color: oklch(0.70 0.16 15); }
+.tok-attr      { color: oklch(0.74 0.14 70); }
+
 /* ---------- Renderer: Code ---------- */
 
 .renderer-code { display: flex; flex-direction: column; height: 100%; }

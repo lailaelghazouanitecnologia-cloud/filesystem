@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import type { FileNode } from "../types";
 import { formatSize, formatDate, getPath } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
+import { Highlighted, getLang } from "../utils/tokenizer";
 import {
   X,
   FileText,
@@ -120,6 +121,7 @@ function CodeRenderer({ file }: { file: FileNode }) {
   const lines = file.content?.split("\n") ?? [];
   const ext = file.extension?.toLowerCase() ?? file.name.toLowerCase();
   const lang = langMap[ext] ?? "Text";
+  const langHint = getLang(ext, file.name);
 
   return (
     <div className="renderer-code">
@@ -129,7 +131,7 @@ function CodeRenderer({ file }: { file: FileNode }) {
           <div className="file-viewer-line-numbers">
             {lines.map((_, i) => (<span key={i}>{i + 1}</span>))}
           </div>
-          <pre className="file-viewer-source">{file.content}</pre>
+          <pre className="file-viewer-source"><Highlighted code={file.content ?? ""} lang={langHint} /></pre>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useMemo } from "react";
 import type { FileNode } from "../types";
 import { formatSize, formatDate, getPath } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
+import { Highlighted, getLang } from "../utils/tokenizer";
 import {
   X,
   Image,
@@ -25,6 +26,8 @@ interface DetailsPanelProps {
 
 function MiniCodePreview({ file }: { file: FileNode }) {
   const lines = (file.content ?? "").split("\n").slice(0, 8);
+  const ext = file.extension?.toLowerCase() ?? "";
+  const lang = getLang(ext, file.name);
   return (
     <div className="mini-preview mini-code">
       <div className="mini-code-lines">
@@ -32,7 +35,7 @@ function MiniCodePreview({ file }: { file: FileNode }) {
           <span key={i} className="mini-code-ln">{i + 1}</span>
         ))}
       </div>
-      <pre className="mini-code-src">{lines.join("\n")}</pre>
+      <pre className="mini-code-src"><Highlighted code={lines.join("\n")} lang={lang} /></pre>
     </div>
   );
 }
