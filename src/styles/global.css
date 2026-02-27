@@ -1126,21 +1126,12 @@ body {
   color: var(--text-tertiary);
 }
 
-.file-viewer-info-grid {
-  display: grid;
-  grid-template-columns: auto auto;
-  gap: 4px 16px;
+.file-viewer-info-tags {
+  display: flex;
+  gap: 8px;
   margin-top: 10px;
-  font-size: var(--fs-xs);
-}
-
-.file-viewer-info-grid span:nth-child(odd) {
+  font-size: var(--fs-xxs);
   color: var(--text-tertiary);
-  text-align: right;
-}
-
-.file-viewer-info-grid span:nth-child(even) {
-  color: var(--text-secondary);
 }
 
 /* ---------- Edit button in header ---------- */
@@ -1428,11 +1419,9 @@ body {
 }
 
 .renderer-image-prop {
-  display: flex; justify-content: space-between; padding: 2px 0;
-  font-size: var(--fs-xs);
+  font-size: var(--fs-xs); color: var(--text-secondary);
+  padding: 1px 0;
 }
-.renderer-image-prop span:first-child { color: var(--text-tertiary); }
-.renderer-image-prop span:last-child { color: var(--text-secondary); }
 
 /* ---------- Renderer: Audio v2 ---------- */
 

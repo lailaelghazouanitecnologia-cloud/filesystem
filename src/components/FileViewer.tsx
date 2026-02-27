@@ -20,11 +20,8 @@ import {
   ChevronRight,
   ZoomIn,
   ZoomOut,
-  Download,
   Folder,
   File,
-  Camera,
-  Clock,
   Hash,
 } from "lucide-react";
 
@@ -263,10 +260,9 @@ function PdfRenderer({ file }: { file: FileNode }) {
         </div>
       </div>
       <div className="renderer-pdf-info-bar">
-        <span>{pages} pages</span>
+        <span>{pages} pg</span>
         <span>{formatSize(file.size)}</span>
         {meta?.producer && <span>{String(meta.producer)}</span>}
-        <span>{formatDate(file.modifiedAt)}</span>
       </div>
     </div>
   );
@@ -289,24 +285,19 @@ function ImageRenderer({ file }: { file: FileNode }) {
       </div>
       <div className="renderer-image-sidebar">
         <div className="renderer-image-section">
-          <h4>Info</h4>
-          <div className="renderer-image-prop"><span>Dimensions</span><span>{w} × {h}</span></div>
-          <div className="renderer-image-prop"><span>Format</span><span>{ext}</span></div>
-          <div className="renderer-image-prop"><span>Size</span><span>{formatSize(file.size)}</span></div>
-          {meta?.colorSpace && <div className="renderer-image-prop"><span>Color</span><span>{String(meta.colorSpace)}</span></div>}
+          <div className="renderer-image-prop">{w} × {h}</div>
+          <div className="renderer-image-prop">{ext} · {formatSize(file.size)}</div>
+          {meta?.colorSpace && <div className="renderer-image-prop">{String(meta.colorSpace)}</div>}
         </div>
         {meta?.camera && (
           <div className="renderer-image-section">
-            <h4>Camera</h4>
-            <div className="renderer-image-prop"><span>Device</span><span>{String(meta.camera)}</span></div>
-            {meta?.aperture && <div className="renderer-image-prop"><span>Aperture</span><span>{String(meta.aperture)}</span></div>}
-            {meta?.iso && <div className="renderer-image-prop"><span>ISO</span><span>{String(meta.iso)}</span></div>}
+            <div className="renderer-image-prop">{String(meta.camera)}</div>
+            {meta?.aperture && <div className="renderer-image-prop">{String(meta.aperture)}{meta?.iso ? ` · ISO ${String(meta.iso)}` : ""}</div>}
           </div>
         )}
         <div className="renderer-image-section">
-          <h4>File</h4>
-          <div className="renderer-image-prop"><span>Modified</span><span>{formatDate(file.modifiedAt)}</span></div>
-          <div className="renderer-image-prop"><span>Created</span><span>{formatDate(file.createdAt)}</span></div>
+          <div className="renderer-image-prop">{formatDate(file.modifiedAt)}</div>
+          <div className="renderer-image-prop">{formatDate(file.createdAt)}</div>
         </div>
       </div>
     </div>
@@ -493,8 +484,7 @@ function ArchiveRenderer({ file }: { file: FileNode }) {
         </div>
       </div>
       <div className="renderer-zip-footer">
-        <span>Total: {formatSize(file.size)}</span>
-        <span>{formatDate(file.modifiedAt)}</span>
+        <span>{formatSize(file.size)}</span>
       </div>
     </div>
   );
@@ -542,7 +532,7 @@ function DocumentRenderer({ file }: { file: FileNode }) {
         </div>
       </div>
       <div className="renderer-doc-statusbar">
-        <span>Page 1 of {pages}</span>
+        <span>1 / {pages}</span>
         <span>{words.toLocaleString()} words</span>
         <span>{formatSize(file.size)}</span>
       </div>
@@ -555,12 +545,11 @@ function GenericRenderer({ file }: { file: FileNode }) {
     <div className="file-viewer-placeholder">
       <FileIcon type={file.type} name={file.name} size={48} />
       <h3>{file.name}</h3>
-      <p>No preview available for this file type</p>
-      <div className="file-viewer-info-grid">
-        <span>Type</span><span>{file.extension?.toUpperCase() ?? "File"}</span>
-        <span>Size</span><span>{formatSize(file.size)}</span>
-        <span>Modified</span><span>{formatDate(file.modifiedAt)}</span>
-        <span>Created</span><span>{formatDate(file.createdAt)}</span>
+      <p>No preview available</p>
+      <div className="file-viewer-info-tags">
+        <span>{file.extension?.toUpperCase() ?? "File"}</span>
+        <span>{formatSize(file.size)}</span>
+        <span>{formatDate(file.modifiedAt)}</span>
       </div>
     </div>
   );
