@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { FileNode } from "../types";
 import { getChildren } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
-import { ChevronRight, Ellipsis } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 
 interface SidebarProps {
   fs: Map<string, FileNode>;
@@ -71,11 +71,7 @@ function FolderTree({
 export default function Sidebar({ fs, rootId, currentFolderId, onNavigate }: SidebarProps) {
   return (
     <aside className="sidebar">
-      <div className="sidebar-header">
-        <Ellipsis size={16} />
-      </div>
-
-      <div className="sidebar-section">
+      <div className="sidebar-section" style={{ paddingTop: 10 }}>
         <div className="sidebar-section-title">Pinned</div>
         {["Documents", "Pictures", "Downloads", "Projects"].map((name) => {
           const node = Array.from(fs.values()).find(

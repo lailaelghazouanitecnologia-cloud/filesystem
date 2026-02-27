@@ -19,6 +19,7 @@ interface FileListProps {
   selectedFileId: string | null;
   onSelectFile: (id: string | null) => void;
   onOpenFolder: (id: string) => void;
+  onOpenFile: (id: string) => void;
   onContextMenu: (e: React.MouseEvent, id: string) => void;
   onSort: (field: SortField) => void;
   onViewChange: (mode: ViewMode) => void;
@@ -33,6 +34,7 @@ export default function FileList({
   selectedFileId,
   onSelectFile,
   onOpenFolder,
+  onOpenFile,
   onContextMenu,
   onSort,
   onViewChange,
@@ -67,6 +69,7 @@ export default function FileList({
 
   const handleDoubleClick = (node: FileNode) => {
     if (node.type === "folder") onOpenFolder(node.id);
+    else onOpenFile(node.id);
   };
 
   const handleClick = (e: React.MouseEvent, node: FileNode) => {

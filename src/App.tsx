@@ -13,6 +13,7 @@ import SearchBar from "./components/SearchBar";
 import FileList from "./components/FileList";
 import ContextMenu from "./components/ContextMenu";
 import DetailsPanel from "./components/DetailsPanel";
+import FileViewer from "./components/FileViewer";
 import DialogModal from "./components/DialogModal";
 import {
   ArrowLeft,
@@ -32,6 +33,7 @@ export default function App() {
   const [sortField, setSortField] = useState<SortField>("name");
   const [sortDirection, setSortDirection] = useState<SortDirection>("asc");
   const [showDetails, setShowDetails] = useState(false);
+  const [openFileId, setOpenFileId] = useState<string | null>(null);
   const [history, setHistory] = useState<string[]>([rootId]);
   const [historyIdx, setHistoryIdx] = useState(0);
   const [contextMenu, setContextMenu] = useState<ContextMenuState>({
@@ -55,6 +57,7 @@ export default function App() {
     (folderId: string) => {
       setCurrentFolderId(folderId);
       setSelectedFileId(null);
+      setOpenFileId(null);
       const newHistory = history.slice(0, historyIdx + 1);
       newHistory.push(folderId);
       setHistory(newHistory);
@@ -128,10 +131,7 @@ export default function App() {
       switch (action) {
         case "open":
           if (target.type === "folder") navigate(targetId);
-          else {
-            setSelectedFileId(targetId);
-            setShowDetails(true);
-          }
+          else setOpenFileId(targetId);
           break;
         case "rename":
           setDialog({
@@ -273,29 +273,40 @@ export default function App() {
         </header>
 
         <div className="content-area">
-          <FileList
-            fs={fs}
-            currentFolderId={currentFolderId}
-            viewMode={viewMode}
-            sortField={sortField}
-            sortDirection={sortDirection}
-            selectedFileId={selectedFileId}
-            onSelectFile={(id) => {
-              setSelectedFileId(id);
-              if (id) setShowDetails(true);
-            }}
-            onOpenFolder={navigate}
-            onContextMenu={handleContextMenu}
-            onSort={handleSort}
-            onViewChange={setViewMode}
-          />
-
-          {showDetails && (
-            <DetailsPanel
+          {openFileId && fs.get(openFileId) ? (
+            <FileViewer
               fs={fs}
-              file={selectedFile}
-              onClose={() => setShowDetails(false)}
+              file={fs.get(openFileId)!}
+              onClose={() => setOpenFileId(null)}
             />
+          ) : (
+            <>
+              <FileList
+                fs={fs}
+                currentFolderId={currentFolderId}
+                viewMode={viewMode}
+                sortField={sortField}
+                sortDirection={sortDirection}
+                selectedFileId={selectedFileId}
+                onSelectFile={(id) => {
+                  setSelectedFileId(id);
+                  if (id) setShowDetails(true);
+                }}
+                onOpenFolder={navigate}
+                onOpenFile={(id) => setOpenFileId(id)}
+                onContextMenu={handleContextMenu}
+                onSort={handleSort}
+                onViewChange={setViewMode}
+              />
+
+              {showDetails && (
+                <DetailsPanel
+                  fs={fs}
+                  file={selectedFile}
+                  onClose={() => setShowDetails(false)}
+                />
+              )}
+            </>
           )}
         </div>
       </main>
