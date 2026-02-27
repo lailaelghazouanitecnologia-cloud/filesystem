@@ -278,6 +278,15 @@ export default function App() {
               fs={fs}
               file={fs.get(openFileId)!}
               onClose={() => setOpenFileId(null)}
+              onSave={(fileId, content) => {
+                const node = fs.get(fileId);
+                if (node) {
+                  node.content = content;
+                  node.size = new TextEncoder().encode(content).length;
+                  node.modifiedAt = new Date();
+                  forceUpdate();
+                }
+              }}
             />
           ) : (
             <>

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useRef, useEffect } from "react";
 import type { FileNode } from "../types";
 import { formatSize, formatDate, getPath } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
@@ -10,17 +10,19 @@ import {
   Film,
   Archive,
   FileSpreadsheet,
-  FileCode,
   Play,
-  Pause,
   Volume2,
   Maximize,
+  Pencil,
+  Check,
+  Undo2,
 } from "lucide-react";
 
 interface FileViewerProps {
   fs: Map<string, FileNode>;
   file: FileNode;
   onClose: () => void;
+  onSave: (fileId: string, content: string) => void;
 }
 
 /* ---------- Language label map ---------- */
@@ -34,6 +36,119 @@ const langMap: Record<string, string> = {
   makefile: "Makefile", gitignore: "Git Ignore", ini: "INI", cfg: "Config",
   env: "Environment",
 };
+
+/* ---------- Check if file is editable ---------- */
+function isEditable(file: FileNode): boolean {
+  const ext = file.extension?.toLowerCase() ?? "";
+  return (
+    file.content !== undefined ||
+    ["code", "document"].includes(file.type) ||
+    ext in langMap ||
+    ["gitconfig", "bashrc", "dockerfile"].some((n) => file.name.toLowerCase().includes(n))
+  );
+}
+
+/* ---------- Editor ---------- */
+
+function EditorView({
+  file,
+  onSave,
+  onCancel,
+}: {
+  file: FileNode;
+  onSave: (content: string) => void;
+  onCancel: () => void;
+}) {
+  const [value, setValue] = useState(file.content ?? "");
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineCountRef = useRef<HTMLDivElement>(null);
+  const ext = file.extension?.toLowerCase() ?? file.name.toLowerCase();
+  const lang = langMap[ext] ?? "Text";
+  const lines = value.split("\n");
+  const hasChanges = value !== (file.content ?? "");
+
+  useEffect(() => {
+    textareaRef.current?.focus();
+  }, []);
+
+  const handleScroll = () => {
+    if (textareaRef.current && lineCountRef.current) {
+      lineCountRef.current.scrollTop = textareaRef.current.scrollTop;
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent) => {
+    // Ctrl+S / Cmd+S to save
+    if ((e.ctrlKey || e.metaKey) && e.key === "s") {
+      e.preventDefault();
+      if (hasChanges) onSave(value);
+    }
+    // Escape to cancel
+    if (e.key === "Escape") {
+      e.preventDefault();
+      onCancel();
+    }
+    // Tab inserts 2 spaces
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const ta = textareaRef.current!;
+      const start = ta.selectionStart;
+      const end = ta.selectionEnd;
+      const newVal = value.substring(0, start) + "  " + value.substring(end);
+      setValue(newVal);
+      requestAnimationFrame(() => {
+        ta.selectionStart = ta.selectionEnd = start + 2;
+      });
+    }
+  };
+
+  return (
+    <div className="renderer-editor">
+      <div className="renderer-editor-toolbar">
+        <span className="renderer-editor-lang">{lang}</span>
+        <span className="renderer-editor-hint">Ctrl+S save · Esc cancel</span>
+        <div className="renderer-editor-actions">
+          <button
+            className="renderer-editor-btn cancel"
+            onClick={onCancel}
+            title="Cancel"
+          >
+            <Undo2 size={13} />
+            <span>Cancel</span>
+          </button>
+          <button
+            className="renderer-editor-btn save"
+            onClick={() => onSave(value)}
+            disabled={!hasChanges}
+            title="Save"
+          >
+            <Check size={13} />
+            <span>Save</span>
+          </button>
+        </div>
+      </div>
+      <div className="renderer-editor-scroll">
+        <div
+          className="renderer-editor-lines"
+          ref={lineCountRef}
+        >
+          {lines.map((_, i) => (
+            <span key={i}>{i + 1}</span>
+          ))}
+        </div>
+        <textarea
+          ref={textareaRef}
+          className="renderer-editor-textarea"
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          onScroll={handleScroll}
+          onKeyDown={handleKeyDown}
+          spellCheck={false}
+        />
+      </div>
+    </div>
+  );
+}
 
 /* ---------- Renderers ---------- */
 
@@ -343,10 +458,18 @@ function getRenderer(file: FileNode) {
   return <GenericRenderer file={file} />;
 }
 
-export default function FileViewer({ fs, file, onClose }: FileViewerProps) {
+export default function FileViewer({ fs, file, onClose, onSave }: FileViewerProps) {
+  const [editing, setEditing] = useState(false);
+  const canEdit = isEditable(file);
+
   const path = getPath(fs, file.id)
     .map((n) => n.name)
     .join(" / ");
+
+  const handleSave = (content: string) => {
+    onSave(file.id, content);
+    setEditing(false);
+  };
 
   return (
     <div className="file-viewer">
@@ -360,13 +483,30 @@ export default function FileViewer({ fs, file, onClose }: FileViewerProps) {
           <span>{formatSize(file.size)}</span>
           <span>{formatDate(file.modifiedAt)}</span>
         </div>
+        {canEdit && !editing && (
+          <button
+            className="file-viewer-edit-btn"
+            onClick={() => setEditing(true)}
+            title="Edit file"
+          >
+            <Pencil size={13} />
+          </button>
+        )}
         <button className="file-viewer-close" onClick={onClose}>
           <X size={14} />
         </button>
       </header>
 
       <div className="file-viewer-body">
-        {getRenderer(file)}
+        {editing ? (
+          <EditorView
+            file={file}
+            onSave={handleSave}
+            onCancel={() => setEditing(false)}
+          />
+        ) : (
+          getRenderer(file)
+        )}
       </div>
     </div>
   );
