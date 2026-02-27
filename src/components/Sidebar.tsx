@@ -105,11 +105,40 @@ export default function Sidebar({ fs, rootId, currentFolderId, onNavigate }: Sid
       </div>
 
       <div className="sidebar-footer">
-        <div className="storage-info">
-          <div className="storage-bar">
-            <div className="storage-used" style={{ width: "42%" }} />
+        <div className="storage-widget">
+          <div className="storage-icon-ring">
+            <svg viewBox="0 0 36 36" className="storage-ring-svg">
+              <circle
+                cx="18" cy="18" r="15.5"
+                fill="none"
+                stroke="var(--bg-tertiary)"
+                strokeWidth="3"
+              />
+              <circle
+                cx="18" cy="18" r="15.5"
+                fill="none"
+                stroke="var(--accent)"
+                strokeWidth="3"
+                strokeLinecap="round"
+                strokeDasharray={`${0.42 * 97.4} ${97.4}`}
+                transform="rotate(-90 18 18)"
+              />
+            </svg>
+            <svg viewBox="0 0 24 24" className="storage-disk-icon" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5" />
+              <path d="M3 12c0 1.66 4.03 3 9 3s9-1.34 9-3" />
+            </svg>
           </div>
-          <span className="storage-text">128.4 GB / 512 GB</span>
+          <div className="storage-details">
+            <span className="storage-label">Storage</span>
+            <span className="storage-amount">
+              <strong>128.4</strong> / 512 GB
+            </span>
+            <div className="storage-bar">
+              <div className="storage-used" style={{ width: "42%" }} />
+            </div>
+          </div>
         </div>
       </div>
     </aside>

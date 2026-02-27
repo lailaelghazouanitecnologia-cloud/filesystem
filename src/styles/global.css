@@ -235,27 +235,76 @@ body {
 
 .sidebar-footer {
   margin-top: auto;
-  padding: 10px 14px;
+  padding: 10px 12px;
   border-top: 1px solid var(--border);
 }
 
+.storage-widget {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.storage-icon-ring {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+}
+
+.storage-ring-svg {
+  width: 36px;
+  height: 36px;
+}
+
+.storage-disk-icon {
+  position: absolute;
+  inset: 0;
+  width: 18px;
+  height: 18px;
+  margin: auto;
+  color: var(--text-secondary);
+}
+
+.storage-details {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  flex: 1;
+}
+
+.storage-label {
+  font-size: var(--fs-xxs);
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.storage-amount {
+  font-size: var(--fs-xs);
+  color: var(--text-secondary);
+}
+
+.storage-amount strong {
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
 .storage-bar {
-  height: 2px;
+  height: 3px;
   background: var(--bg-tertiary);
-  border-radius: 1px;
+  border-radius: 2px;
   overflow: hidden;
-  margin-bottom: 5px;
+  margin-top: 1px;
 }
 
 .storage-used {
   height: 100%;
   background: var(--accent);
-  border-radius: 1px;
-}
-
-.storage-text {
-  font-size: var(--fs-xxs);
-  color: var(--text-tertiary);
+  border-radius: 2px;
+  transition: width 0.3s ease;
 }
 
 /* ---------- Top Bar ---------- */
