@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import type { FileNode } from "../types";
 import { getChildren } from "../store/fileSystem";
 import { FileIcon } from "./Icons";
-import { ChevronRight, FolderOpen } from "lucide-react";
+import { ChevronRight, Ellipsis } from "lucide-react";
 
 interface SidebarProps {
   fs: Map<string, FileNode>;
@@ -72,8 +72,7 @@ export default function Sidebar({ fs, rootId, currentFolderId, onNavigate }: Sid
   return (
     <aside className="sidebar">
       <div className="sidebar-header">
-        <FolderOpen size={15} color="#61afef" strokeWidth={1.8} />
-        <span className="sidebar-title">Explorer</span>
+        <Ellipsis size={16} />
       </div>
 
       <div className="sidebar-section">

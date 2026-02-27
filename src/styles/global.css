@@ -137,17 +137,16 @@ body {
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 7px;
-  padding: 0 14px;
+  justify-content: flex-end;
+  padding: 0 10px;
   height: var(--topbar-height);
   border-bottom: 1px solid var(--border);
+  color: var(--text-tertiary);
+  cursor: pointer;
 }
 
-.sidebar-title {
-  font-size: var(--fs-sm);
-  font-weight: 600;
+.sidebar-header:hover {
   color: var(--text-secondary);
-  letter-spacing: 0.01em;
 }
 
 .sidebar-section {
